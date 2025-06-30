@@ -42,15 +42,17 @@ def matrnr():
     return matrnr
 
 def projectedBFGSDescent(f, P, x0: np.array, eps=1.0e-3, verbose=0):
-
-    if eps <= 0:                                                # check for positive eps
+    if eps <= 0: # check for positive eps
         raise TypeError('range of eps is wrong!')
 
-    if verbose:                                                 # print information
-        print('Start projectedBFGSDescent...')                  # print start
+    if verbose: # print information
+        print('Start projectedBFGSDescent...') # print start
 
-    countIter = 0                                               # counter for number of loop iterations
-    xk = P.project(x0)                                          # initialize with projected starting point    
+    countIter = 0 # counter for number of loop iterations
+    xk = P.project(x0) # initialize with projected starting point
+
+    # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
+   
     n = x0.shape[0]                                             # Get the shape of x0 to match the identity matrix size 
     Hk = np.eye(n)                                              # initialise Hk with identity matrix
     Ak = P.activeIndexSet(xk)                                   # initialise A from the active index
@@ -64,9 +66,9 @@ def projectedBFGSDescent(f, P, x0: np.array, eps=1.0e-3, verbose=0):
             Hk = np.eye(n)                                                              # Reset only when forced to steepest descent
         
         tk = PB.projectedBacktrackingSearch(f, P, xk, dk)                               # calculaiting pos tk using alg 4.17 (ProjectedBackTracking using the other file from this exercise)
-        x_plus = P.project(xk + tk * dk)
-        A_plus = P.activeIndexSet(x_plus)
-        grad_new = f.gradient(x_plus)
+        x_plus = P.project(xk + tk * dk)                                                # calculate x+ by projecting the updated xk
+        A_plus = P.activeIndexSet(x_plus)                                               # get the active set of the projected updated xk
+        grad_new = f.gradient(x_plus)                                                   # get the gradient of x+
 
         if not np.array_equal(A_plus, Ak):
             Hk[A_plus, :] = np.eye(n)[A_plus, :]                                        # overwrite active rows
@@ -86,19 +88,14 @@ def projectedBFGSDescent(f, P, x0: np.array, eps=1.0e-3, verbose=0):
                 Hk[A_plus, :] = np.eye(n)[A_plus, :]                                    # reduce after update (rows)
                 Hk[:, A_plus] = np.eye(n)[:, A_plus]                                    # reduce after update (columns)
 
-        xk = x_plus
-        Ak = A_plus
+        xk = x_plus                                                                     # reassing xk with x+
+        Ak = A_plus                                                                     # reassign ak with a+
 
-        countIter += 1
-        gradx = f.gradient(xk)
-        
-        # Safety stop
-        if countIter > 1000:
-            if verbose:
-                print('Warning: max iterations reached')
-            break
+        countIter += 1                                                                  # increase the counter
+        gradx = f.gradient(xk)                                                          # calculate the gradient with new xk
 
-    # Final output
+    # INCOMPLETE CODE ENDS
+
     if verbose: # print information
         gradx = f.gradient(xk) # get gradient
         stationarity = np.linalg.norm(xk - P.project(xk - gradx)) # get stationarity

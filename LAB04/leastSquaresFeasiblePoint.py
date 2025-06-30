@@ -44,9 +44,9 @@ class leastSquaresFeasiblePoint:
         myResidual = np.zeros((self.N, 1)) # initialize residual vector as zero vector
         
         # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
-        for k in range(self.N):  # iterate through all N constraints
-            constraint_value = self.hArray[k].objective(x)  # evaluate the k-th constraint function h[k](x)
-            myResidual[k, 0] = self.p[k] * constraint_value  # multiply by weight p[k] and store in residual vector
+        for k in range(self.N):                                     # iterate through all N constraints
+            constraint_value = self.hArray[k].objective(x)          # evaluate the k-th constraint function h[k](x)
+            myResidual[k, 0] = self.p[k] * constraint_value         # multiply by weight p[k] and store in residual vector
         # INCOMPLETE CODE ENDS
 
         return myResidual
@@ -55,9 +55,9 @@ class leastSquaresFeasiblePoint:
         myJacobian = np.zeros((self.N, x.shape[0])) # initialize jacobian matrix as zero matrix
 
         # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
-        for k in range(self.N):  # iterate through all N constraints
-            gradient_k = self.hArray[k].gradient(x)  # compute gradient of k-th constraint function
-            myJacobian[k, :] = (self.p[k] * gradient_k).flatten()  # multiply gradient by weight p[k] and store as k-th row
+        for k in range(self.N):                                     # iterate through all N constraints
+            gradient_k = self.hArray[k].gradient(x)                 # compute gradient of k-th constraint function
+            myJacobian[k, :] = (self.p[k] * gradient_k).flatten()   # multiply gradient by weight p[k] and store as k-th row
         # INCOMPLETE CODE ENDS
 
         return myJacobian

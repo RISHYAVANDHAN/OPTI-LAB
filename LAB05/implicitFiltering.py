@@ -89,31 +89,30 @@ def implicitFiltering(f, P, x0: np.array, h: np.array, eps=1.0e-3, verbose=0):
 
     countIter = 0 # counter for outer loops
     xk = x0 # start value of outer loop
-    # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
-    xb = xk.copy()  # initialize best point as starting point
-    fb = f.objective(xb)  # evaluate function at best point
-    m = h.shape[0]  # get number of scales
     
-    while True:  # outer loop continues until minimum at all scales is found
-        x_old = xk.copy()  # store current point to check for convergence
+    # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
+    
+    xb = xk.copy()                                  # initialize best point as starting point
+    fb = f.objective(xb)                            # evaluate function at best point
+    m = h.shape[0]                                  # get number of scales
+    
+    while True:                                     # outer loop continues until minimum at all scales is found
+        x_old = xk.copy()                           # store current point to check for convergence
         
-        for j in range(m):  # iterate through all scales
-            hj = h[j, 0]  # get current scale value
+        for j in range(m):                          # iterate through all scales
+            hj = h[j, 0]                            # get current scale value
             xhj = SUCSProjectedSteepestDescent(xk, hj, eps, verbose=verbose)  # solve optimization problem at scale hj
-            fhj = f.objective(xhj)  # evaluate function at solution
+            fhj = f.objective(xhj)                  # evaluate function at solution
             
-            if fhj < fb:  # check if new solution is better than current best
-                xb = xhj.copy()  # update best point
-                fb = fhj  # update best function value
+            if fhj < fb:                            # check if new solution is better than current best
+                xb = xhj.copy()                     # update best point
+                fb = fhj                            # update best function value
         
-        if np.allclose(xk, xb):  # check if current point equals best point (minimum at all scales)
-            break  # terminate outer loop
+        if np.allclose(xk, xb):                     # check if current point equals best point (minimum at all scales)
+            break                                   # terminate outer loop
         else:
-            xk = xb.copy()  # update current point to best point
-            countIter += 1  # increment outer loop counter
-            
-            if countIter > 100:  # safety check to prevent infinite loops
-                break
+            xk = xb.copy()                          # update current point to best point
+            countIter += 1                          # increment outer loop counter
 
     # INCOMPLETE CODE ENDS
 

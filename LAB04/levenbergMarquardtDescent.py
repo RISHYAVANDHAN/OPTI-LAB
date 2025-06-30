@@ -54,38 +54,42 @@ def levenbergMarquardtDescent(R, p0: np.array, eps=1.0e-4, alpha0=1.0e-3, beta=1
 
     countIter = 0 # counter for loop iterations
 
-    p = p0 # initialize p with starting point
-    alpha = alpha0 # initialize damping parameter alpha
-    J = R.jacobian(p) # compute Jacobian at current p
-    r = R.residual(p) # compute residual at current p
-    grad = J.T @ r # compute gradient of the objective
-    grad_norm = np.linalg.norm(grad) # compute norm of the gradient
+    # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
+
+    p = p0                                                          # initialize p with starting point
+    alpha = alpha0                                                  # initialize damping parameter alpha
+    J = R.jacobian(p)                                               # compute Jacobian at current p
+    r = R.residual(p)                                               # compute residual at current p
+    grad = J.T @ r                                                  # compute gradient of the objective
+    grad_norm = np.linalg.norm(grad)                                # compute norm of the gradient
 
     while grad_norm > eps:
-        J = R.jacobian(p) # compute Jacobian at current p
-        r = R.residual(p) # compute residual at current p
-        grad = J.T @ r # compute gradient of the objective
-        grad_norm = np.linalg.norm(grad) # compute norm of the gradient
+        J = R.jacobian(p)                                           # compute Jacobian at current p
+        r = R.residual(p)                                           # compute residual at current p
+        grad = J.T @ r                                              # compute gradient of the objective
+        grad_norm = np.linalg.norm(grad)                            # compute norm of the gradient
 
-        if verbose: # print current iteration and gradient norm
+        if verbose:                                                 # print current iteration and gradient norm
             print(f"Iter {countIter}: ||grad|| = {grad_norm}, alpha = {alpha}")
 
-        if grad_norm <= eps: # check termination criterion
-            break # exit loop if gradient norm is small enough
+        if grad_norm <= eps:                                        # check termination criteria
+            break                                                   # exit loop if gradient norm is small enough
 
-        A = J.T @ J + alpha * np.eye(p.shape[0]) # build LM system matrix
-        b = -grad # right-hand side for LM step
+        A = J.T @ J + alpha * np.eye(p.shape[0])                    # build the A matrix
+        b = -grad                                                   # right-hand side for LM step
 
-        d = PCG.PrecCGSolver(A, b) # solve for step direction using preconditioned CG
+        d = PCG.PrecCGSolver(A, b)                                  # solve for step direction using preconditioned CG
 
-        p_new = p + d # compute new candidate point
-        r_new = R.residual(p_new) # compute new residual
+        p_new = p + d                                               # update the point
+        r_new = R.residual(p_new)                                   # compute new residual for the updated point
         if ((r_new.T @ r_new) < (r.T @ r)):
-            p = p + d  # Accept step: update p
-            alpha = alpha0  # Reset damping
-            countIter += 1  # Only increment when step accepted
+            p = p + d                                               # update p
+            alpha = alpha0                                          # Reset damping
+            countIter += 1                                          # Only increment when step accepted
         else:
-            alpha = beta * alpha  # Reject step: increase damping, keep same p
+            alpha = beta * alpha                                    # increase damping, keep same p
+
+    # INCOMPLETE CODE ENDS
 
     if verbose: # print information
         gradp = R.jacobian(p).T @ R.residual(p) # store final gradient

@@ -75,75 +75,52 @@ def WolfePowellSearch(f, x: np.array, d: np.array, sigma=1.0e-3, rho=1.0e-2, ver
     t = 1 # initial step size guess
 
     # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
+
+    def WP1(ft, s):                                         # defining w1 
+        isWP1 = ft <= fx + s*sigma*descent                  # boolean check for checking if w1 is true
+        return isWP1                                        # return the boolean
+
+    def WP2(gradft: np.array):                              # defining W2
+        isWP2 = gradft.T @ d >= rho*descent                 # boolean check for w2
+        return isWP2                                        # return the boolean
+
+    if gradx.T @ d >= 0:                                    # check the descent direction first before proceedimnmng
+        raise TypeError('descent direction check failed!')  # statemnt if the check fails
+
+    if WP1(f.objective(x+t*d), t) == False:                 # check if w1 paases
+        t = t/2                                             # update t
+        while WP1(f.objective(x + t*d), t) == False:        # check for it again
+            t = t/2                                         # update t again
+        t_minus = t                                         # if the intermediate check failed, update t_minus
+        t_plus = 2*t                                        # and also t_plus
     
-    # Define Wolfe-Powell condition 1: sufficient decrease
-    def W1(t):
-        xt = x + t * d                                                  # Compute new point
-        return f.objective(xt) <= fx + t * sigma * descent              # Check condition
-
-    # Define Wolfe-Powell condition 2: curvature condition
-    def W2(t):
-        xt = x + t * d                                                  # Compute new point
-        gradxt = f.gradient(xt)                                         # Compute gradient at new point
-        return (gradxt.T @ d) >= rho * descent                          # Check condition
-
-    max_iter = 30  # Set maximum number of refinement iterations
-    countIter = 0  # Initialize iteration counter
-
-    # Step 1: Backtracking if W1 fails at t=1
-    if not W1(t):
-        while not W1(t):
-            t = t / 2.0  # halve t until W1 is satisfied
-            countIter += 1
-            if countIter > max_iter:
-                raise Exception('Too many iterations in backtracking')
-        t_minus = t
-        t_plus = 2 * t
-    # Step 2: If W1 holds but W2 fails, fronttracking
-    elif not W2(t):
-        while W1(t):
-            t = 2 * t  # double t until W1 fails
-            countIter += 1
-            if countIter > max_iter:
-                raise Exception('Too many iterations in fronttracking')
-        t_minus = t / 2.0
-        t_plus = t
-    # Step 3: If both W1 and W2 hold at t=1, return t=1
-    else:
-        if verbose:
-            xt = x + t * d
-            fxt = f.objective(xt)
-            gradxt = f.gradient(xt)
-            print('WolfePowellSearch terminated with t=', t)
-            print('Wolfe-Powell: ', fxt, '<=', fx+t*sigma*descent, ' and ', gradxt.T @ d, '>=', rho*descent)
-        return t
-
-    # Step 4: Refinement (bisection) between t_minus and t_plus
-    refine_iter = 0
-    t_current = t_minus
+    elif WP2(f.gradient(x + t*d)) == True:                  # check for w2
+        t_star = t                                          # update the t and return it
+        return t_star
     
-    while not W2(t_current):
-        t_candidate = (t_minus + t_plus) / 2.0  # bisect interval
-        if W1(t_candidate):
-            t_minus = t_candidate  # move lower bound up
-        else:
-            t_plus = t_candidate  # move upper bound down
-        t_current = t_minus
-        refine_iter += 1
-        if refine_iter > max_iter:
-            raise Exception('Too many iterations in refinement')
+    else :                                                  # if the check failed, then 
+        t = 2*t                                             # update t
+        while WP1(f.objective(x+t*d), t) == True:           # check for w1 now (front tracking)
+            t = 2*t                                         # update t if passes
+        t_minus = t/2                                       # if it failed update t_minus
+        t_plus = t                                          # and t_plus
 
-    t = t_minus  # final step size
-
-    if verbose:  # print information
-        xt = x + t * d  # store solution point
-        fxt = f.objective(xt)  # get its objective
-        gradxt = f.gradient(xt)  # get its gradient
-        print('WolfePowellSearch terminated with t=', t)  # print terminatin and step size
-        print('Wolfe-Powell: ', fxt, '<=', fx+t*sigma*descent, ' and ', gradxt.T @ d, '>=', rho*descent)  # print Wolfe-Powell checks
-
+    t = t_minus                                             # updte t with t_minus
+    while WP2(f.gradient(x + t*d)) == False:                # check for w2
+        t = (t_minus + t_plus)/2                            # update t with the average of t- and t+
+        if WP1(f.objective(x + t*d),t) == True:             # check for w1
+            t_minus = t                                     # update t- if it passes
+        else:                                               # if not
+            t_plus = t                                      # update t+
+    t_star = t_minus                                        # assign t as t-
     
-    if countIter > 30:
-        raise Exception('Its going over the maximum counf of 30')
-    
-    return t
+    # INCOMPLETE CODE ENDS
+
+    if verbose:
+        xt = x + t * d
+        fxt = f.objective(xt)
+        gradxt = f.gradient(xt)
+        print('WolfePowellSearch terminated with t=', t)
+        print('Wolfe-Powell: ', fxt, '<=', fx+t*sigma*descent, ' and ', gradxt.T @ d, '>=', rho*descent)
+
+    return t_star

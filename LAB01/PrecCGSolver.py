@@ -48,31 +48,31 @@ def PrecCGSolver(A: np.array, b: np.array, delta=1.0e-6, verbose=0):
 
     countIter = 0                                                       # counter for number of loop iterations
 
-    L = IC.incompleteCholesky(A)                                        # Step 2: Preconditioner
-    xj = np.zeros_like(b)                                               # Step 3: Initial guess (can be zeros)
-    rj = A @ xj - b                                                     # Step 3: Initial residual
-    zj = LLT.LLTSolver(L, rj)                                           # Preconditioned residual
-    dj = -zj                                                            # Step 3: Initial direction
+    L = IC.incompleteCholesky(A)                                        # Step 2: Preconditioner definition
+    xj = np.zeros_like(b)                                               # Step 3: Initial guess for the routine
+    rj = A @ xj - b                                                     # Step 3: Initial residual for the initial guessed value
+    zj = LLT.LLTSolver(L, rj)                                           # Preconditioned residual using the perconditioned matrix obtained form choleskey
+    dj = -zj                                                            # Step 3: Initial direction (descent direction)
 
     while np.linalg.norm(rj) > delta:
-        dj_tilda = A @ dj                                               # Step 4a: ˜dj ← Adj
-        rhoj = float(dj.T @ dj_tilda)                                   # Step 4b: ρj ← dj^⊤ ˜dj
-        tj_num = float(rj.T @ LLT.LLTSolver(L, rj))                     # Step 4c: numerator
-        tj = tj_num / rhoj                                              # Step 4c: tj ← rj^⊤LLTSolver(L,rj)/ρj
-        xj = xj + tj * dj                                               # Step 4d: xj ← xj + tjdj
-        r_old = rj.copy()                                               # Step 4e: rold ← rj
-        rj = r_old + tj * dj_tilda                                      # Step 4f: rj ← rold + tj ˜dj
-        zj = LLT.LLTSolver(L, rj)                                       # Preconditioned residual for new rj
-        betaj_num = float(rj.T @ zj)                                    # Step 4g: numerator
-        betaj_den = float(r_old.T @ LLT.LLTSolver(L, r_old))            # Step 4g: denominator
-        betaj = betaj_num / betaj_den if betaj_den != 0 else 0          # Step 4g: βj
-        dj = -zj + betaj * dj                                           # Step 4h: dj ← −LLTSolver(L, rj ) + βjdj
-        countIter += 1                                                  # Increment iteration counter
+        dj_tilda = A @ dj                                               # Step 4a: calculating ˜dj ← Adj 
+        rhoj = float(dj.T @ dj_tilda)                                   # Step 4b: assigning ρj ← dj^⊤ ˜dj
+        tj_num = float(rj.T @ LLT.LLTSolver(L, rj))                     # Step 4c: numerator for further use
+        tj = tj_num / rhoj                                              # Step 4c: calculating and assigning tj ← rj^⊤LLTSolver(L,rj)/ρj
+        xj = xj + tj * dj                                               # Step 4d: updating x: xj ← xj + tjdj
+        r_old = rj.copy()                                               # Step 4e: copying old r to use after the loop: rold ← rj
+        rj = r_old + tj * dj_tilda                                      # Step 4f: updating new r with old r: rj ← rold + tj ˜dj
+        zj = LLT.LLTSolver(L, rj)                                       # Preconditioned residual for new rj after updation
+        betaj_num = float(rj.T @ zj)                                    # Step 4g: numerator for further use
+        betaj_den = float(r_old.T @ LLT.LLTSolver(L, r_old))            # Step 4g: denominator for further use
+        betaj = betaj_num / betaj_den if betaj_den != 0 else 0          # Step 4g: βj with the if-else case
+        dj = -zj + betaj * dj                                           # Step 4h: new descent direction dj ← −LLTSolver(L, rj ) + βjdj
+        countIter += 1                                                  # Increment iteration counter to check if it has exceeded the limit or not 
 
     x = xj                                                              # Output x
 
     if countIter > 30:
-        raise Exception('Its going over the maximum counf of 30')
+        raise Exception('Its going over the maximum count of 30')
 
     if verbose: # print information
         print('precCGSolver terminated after ', countIter, ' steps with norm of residual being ', np.linalg.norm(rj)) # print termination

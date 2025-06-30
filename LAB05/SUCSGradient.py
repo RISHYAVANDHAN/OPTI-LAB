@@ -42,15 +42,15 @@ def SUCSGradient(f, x: np.array, h: float, verbose=0):
     grad_f_h = x.copy() # initialize simplex gradient of f
 
     # INCOMPLETE CODE STARTS
-    n = x.shape[0]  # get dimension of the vector x
-    grad_f_h = np.zeros_like(x)  # initialize gradient vector as zero vector
+    n = x.shape[0]                                          # get dimension of the vector x
+    grad_f_h = np.zeros_like(x)                             # initialize gradient vector as zero vector
     
-    for j in range(n):  # iterate through all dimensions
-        e_j = np.zeros_like(x)  # create unit vector e_j
-        e_j[j, 0] = 1.0  # set j-th component to 1
+    for j in range(n):                                      # iterate through all dimensions
+        e_j = np.zeros_like(x)                              # create unit vector e_j
+        e_j[j, 0] = 1.0                                     # set j-th component to 1
         
-        f_forward = f.objective(x + h * e_j)  # evaluate f at forward simplex point x + h*e_j  
-        f_backward = f.objective(x - h * e_j)  # evaluate f at reflected simplex point x - h*e_j
+        f_forward = f.objective(x + h * e_j)                # evaluate f at forward simplex point x + h*e_j  
+        f_backward = f.objective(x - h * e_j)               # evaluate f at reflected simplex point x - h*e_j
         
         grad_f_h[j, 0] = (f_forward - f_backward) / (2.0 * h)  # compute finite difference gradient component
     # INCOMPLETE CODE ENDS
@@ -69,20 +69,21 @@ def SUCSStencilFailure(f, x: np.array, h: float, verbose=0):
     stenFail = 1 # initialize stencil failure with true
 
     # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
-    n = x.shape[0]  # get dimension of the vector x
-    f_center = f.objective(x)  # evaluate function at center point x
-    stenFail = 1  # initialize stencil failure as true (assume failure)
     
-    for j in range(n):  # iterate through all dimensions
-        e_j = np.zeros_like(x)  # create unit vector e_j
-        e_j[j, 0] = 1.0  # set j-th component to 1
+    n = x.shape[0]                                          # get dimension of the vector x
+    f_center = f.objective(x)                               # evaluate function at center point x
+    stenFail = 1                                            # initialize stencil failure as true (assume failure)
+    
+    for j in range(n):                                      # iterate through all dimensions
+        e_j = np.zeros_like(x)                              # create unit vector e_j
+        e_j[j, 0] = 1.0                                     # set j-th component to 1
         
-        f_forward = f.objective(x + h * e_j)  # evaluate f at forward simplex point
-        f_backward = f.objective(x - h * e_j)  # evaluate f at backward simplex point
+        f_forward = f.objective(x + h * e_j)                # evaluate f at forward simplex point
+        f_backward = f.objective(x - h * e_j)               # evaluate f at backward simplex point
         
-        if f_center > f_forward or f_center > f_backward:  # check if center point is not minimal
-            stenFail = 0  # no stencil failure found
-            break  # exit loop early since we found a point with lower function value
+        if f_center > f_forward or f_center > f_backward:   # check if center point is not minimal
+            stenFail = 0                                    # no stencil failure found
+            break                                           # exit loop early since we found a point with lower function value
     # INCOMPLETE CODE ENDS
     
     if verbose: # print information

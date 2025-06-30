@@ -49,57 +49,48 @@ def inexactNewtonCG(f, x0: np.array, eps=1.0e-3, verbose=0):
 
     # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
 
-    grad_fk = f.gradient(xk)  # compute gradient at xk
-    norm_grad_fk = np.linalg.norm(grad_fk)  # compute norm of gradient
+    grad_fk = f.gradient(xk)                                                # Calculate gradient for further use
+    norm_grad_fk = np.linalg.norm(grad_fk)                                  # caluclate norm of the gradient for further use
+    eta_k = np.min([(0.5, np.sqrt(norm_grad_fk))]) * norm_grad_fk           # set Eta value first
 
-    # Compute initial eta_k
-    eta_k = np.min([0.5, np.sqrt(norm_grad_fk)]) * norm_grad_fk  # set initial eta_k
+    while norm_grad_fk > eps:                                               # Termination condition
+        xj = xk.copy()                                                      # reassign value to use inside the loop
+        rj = grad_fk.copy()                                                 # reassign the r to use inside the loop
+        dj = -rj.copy()                                                     # get the descent directionn first from rj, then will be updated inside
 
-    max_outer_iter = 30  # maximum number of Newton iterations
+        while np.linalg.norm(rj) > eta_k:                                   # termination condition
 
-    while norm_grad_fk > eps and countIter < max_outer_iter:  # main loop
-        xj = xk.copy()  # initialize CG variable xj
-        rj = grad_fk.copy()  # residual is gradient at xk
-        dj = -rj  # initial CG direction is negative gradient
+            if np.linalg.norm(dj) < 1e-12:                                  # numerical sanity check
+                break                                                       # CG direction broke down numerically
 
-        norm_rj = np.linalg.norm(rj)  # norm of residual
+            dA = DHA.directionalHessApprox(f, xk, dj)                       # given as per the readme file
+            rhoj = dj.T @ dA                                                # set rho from the output and descent direction
 
-        # CG loop: solve approximately Hessian system
-        while norm_rj > eta_k:
-            dA = DHA.directionalHessApprox(f, xk, dj)  # approximate Hessian-vector product
-            rhoj = float(dj.T @ dA)  # compute curvature
+            if not np.isfinite(rhoj) or rhoj<= eps*np.linalg.norm(dj) ** 2: # sanity check also a check included in the algoirithem
+                break  # curvature fail or invalid
 
-            if rhoj <= eps * np.linalg.norm(dj) ** 2:  # check for negative/poor curvature
-                break  # exit CG loop
+            tj = (np.linalg.norm(rj) ** 2) / rhoj                           # calculate tj
+            xj_new = xj + tj * dj                                           # update x with t and d
 
-            tj = float((rj.T @ rj) / rhoj)  # compute step length in CG
-            xj_new = xj + tj * dj  # update xj
+            rold = rj.copy()                                                # reuse r for the checks
+            rj = rold + tj * dA                                             # update r
+            beta_j = (np.linalg.norm(rj) ** 2)/(np.linalg.norm(rold) ** 2)  # calculate beta to update d
+            dj = -rj + beta_j * dj                                          # update descent direction d
 
-            rold = rj.copy()  # store old residual
-            rj = rold + tj * dA  # update residual
+            xj = xj_new.copy()                                              # reassign x to use later
 
-            beta_j = float((rj.T @ rj) / (rold.T @ rold))  # compute beta for CG direction
-            dj = -rj + beta_j * dj  # update CG direction
+        dk = xj - xk                                                        # get the diff when xj and xk are not equal
 
-            xj = xj_new  # update xj for next CG step
-            norm_rj = np.linalg.norm(rj)  # update norm of residual
+        if np.linalg.norm(dk) < 1e-12:                                      # the other check where xj = xk
+            dk = -grad_fk                                                   # fallback to steepest descent if no CG progress (xj = xk)
 
-        # Compute Newton direction
-        if np.allclose(xj, xk):  # if no CG progress, use steepest descent
-            dk = -grad_fk
-        else:
-            dk = xj - xk  # Newton direction from CG
+        tk = WP.WolfePowellSearch(f, xk, dk)                                # update t
+        xk = xk + tk * dk                                                   # update x for the last time
 
-        # Wolfe-Powell line search for step size
-        tk = WP.WolfePowellSearch(f, xk, dk)  # get step size
-
-        xk = xk + tk * dk  # update iterate
-        grad_fk = f.gradient(xk)  # update gradient
-        norm_grad_fk = np.linalg.norm(grad_fk)  # update norm of gradient
-
-        eta_k = np.min([0.5, np.sqrt(norm_grad_fk)]) * norm_grad_fk  # update eta_k
-
-        countIter += 1  # increment iteration counter
+        grad_fk = f.gradient(xk)                                            # calculate gradient to use for the next loop
+        norm_grad_fk = np.linalg.norm(grad_fk)                              # calculate norm to use for next loop condition check
+        eta_k = np.min((0.5, np.sqrt(norm_grad_fk))) * norm_grad_fk         # eta for next loop condition check
+        countIter += 1                                                      # update the counter
 
 
     # INCOMPLETE CODE ENDS

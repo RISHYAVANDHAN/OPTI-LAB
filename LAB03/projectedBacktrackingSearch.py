@@ -62,6 +62,9 @@ def projectedBacktrackingSearch(f, P, xk: np.array, d: np.array, sigma=1.0e-4, r
         print('Start projectedBacktracking...') # print start
 
     t = 1 # starting guess for t
+
+    # INCOMPLETE CODE STARTS, DO NOT FORGET TO WRITE A COMMENT FOR EACH LINE YOU WRITE
+
     
     # Check if point is stationary
     if np.array_equal(P.project(xk + d), xk):
@@ -87,40 +90,41 @@ def projectedBacktrackingSearch(f, P, xk: np.array, d: np.array, sigma=1.0e-4, r
         
     # Backtracking if W1 fails at t
     if W1(t) == False:                      # condiiton to check if W1 fails
-        t /= 2                              # halving the "time" but not technically t
+        t /= 2                              # halving the t to get a smaller t and converge it
         while W1(t) == False:               # step to be repeated until W1 is true
-            t /= 2                          # halving again
-        t_minus = t                         # 
-        t_plus = 2 * t
+            t /= 2                          # if w1 is false, continue halving t again
+        t_minus = t                         # update t- as t
+        t_plus = 2 * t                      # and update the t+ with 2t
     
     # Return t if both conditions satisfied
-    elif W2(t) == True:
-        if verbose:
-            print('projectedBacktracking terminated with t=', t)
-        return t
+    elif W2(t) == True:                                                     # check for w2                  
+        if verbose:                                                         # check for verbose
+            print('projectedBacktracking terminated with t=', t)            # print completion if verbose is true
+        return t                                                            # return t if the w2 is is true
     
     # Fronttracking if W1 passes but W2 fails
-    else:
-        t = 2 * t
-        xt = P.project(xk + t * d)
+    else:                                                                   # if w2 is false
+        t = 2 * t                                                           # increase t to 2t
+        xt = P.project(xk + t * d)                                          # get the corresponding updated x for the new t
         # Double t while conditions hold and point is feasible
-        while ((W1(t) == True) and np.array_equal(xt, (xk + t * d))):
-            t = 2 * t
-            xt = P.project(xk + t * d)
-        t_minus = t / 2
-        t_plus = t
+        while ((W1(t) == True) and np.array_equal(xt, (xk + t * d))):       # check if w1 satisfies and the projected x and non-projected x is same
+            t = 2 * t                                                       # if yes, increase t to 2t again
+            xt = P.project(xk + t * d)                                      # project the x
+        t_minus = t / 2                                                     # if not, update t- with t/2
+        t_plus = t                                                          # and t+ with t
     
-    t = t_minus                             # Start refinement from t_minus
+    t = t_minus                                                             # Start refinement from t_minus
 
-    while W2(t) == False:                        # Refine until W2 condition is satisfied
-        t_mid = (t_minus + t_plus) / 2
-        if W1(t_mid) == True:
-            t_minus = t_mid
+    while W2(t) == False:                                                   # Refine until W2 condition is satisfied
+        t_mid = (t_minus + t_plus) / 2                                      # get the mid of t+ and t-
+        if W1(t_mid) == True:                                               # check if w1 satisfies for this new t, t_mid
+            t_minus = t_mid                                                 # if yes, update t- with t_mid
         else:
-            t_plus = t_mid
-        t = t_minus
+            t_plus = t_mid                                                  # if not, t+ with t_mid
+        t = t_minus                                                         # update the t if w2 is not satisfied with the corresponding t- or the previous t-
 
-    # Step 12: Output t_minus
+    # INCOMPLETE CODE ENDS
+
     if verbose: # print verbose information
         xt = P.project(xk + t * d) # get x+td for found step size t
         fxt = f.objective(xt) # get objective value at this point
